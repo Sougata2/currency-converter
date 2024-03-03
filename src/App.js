@@ -8,12 +8,18 @@ const KEY = "17c79158ccf28915047f335f";
 
 function App() {
   const [amount, setAmount] = useState("");
+  const [finalAmount, setFinalAmount] = useState("");
   const [countryCode, setCountryCode] = useState(["AED", "AED"]); // default is for UAE
-  const [isLoading, setIsLoading] = useState(false);
+  const [disabled, setDisabled] = useState(true);
 
-  function handleOnChange(value) {
+  function handleAmount(value) {
     setAmount((amount) => value);
   }
+
+  function handleFinalAmount(value) {
+    setFinalAmount((finalAmount) => value);
+  }
+
   return (
     <div className="App">
       <div className="section-currency">
@@ -38,10 +44,25 @@ function App() {
           />
         </Target>
       </div>
-      <div className="section-result">
-        <NumberInput value={amount} handleOnChange={handleOnChange} />
+      <div className="section-result section">
+        <NumberInput
+          amount={amount}
+          finalAmount={finalAmount}
+          handleAmount={handleAmount}
+          handleFinalAmount={handleFinalAmount}
+          countryCodes={countryCode}
+          disabled={!disabled}
+        />
+        <NumberInput
+          amount={amount}
+          finalAmount={finalAmount}
+          handleAmount={handleAmount}
+          handleFinalAmount={handleFinalAmount}
+          countryCodes={countryCode}
+          disabled={disabled}
+        />
         {/* result */}
-        {amount && <FinalAmount value={amount} countryCodes={countryCode} />}
+        {/* {amount && <FinalAmount value={amount} countryCodes={countryCode} />} */}
       </div>
     </div>
   );
@@ -59,25 +80,14 @@ function Target({ children }) {
   return <div>{children}</div>;
 }
 
-function NumberInput({ value, handleOnChange }) {
-  return (
-    <div>
-      <input
-        type="number"
-        value={value}
-        autoComplete="off"
-        onChange={(e) => handleOnChange(e.target.value)}
-      />
-    </div>
-  );
-}
-
-function Button({ children }) {
-  return <button>{children}</button>;
-}
-
-function FinalAmount({ value, countryCodes: [base, target] }) {
-  const [finalAmount, setFinalAmount] = useState("");
+function NumberInput({
+  amount,
+  finalAmount,
+  handleAmount,
+  handleFinalAmount,
+  countryCodes: [base, target],
+  disabled,
+}) {
   const [isLoading, setIsLoading] = useState(false);
   useEffect(
     function () {
@@ -89,8 +99,8 @@ function FinalAmount({ value, countryCodes: [base, target] }) {
             signal: controller.signal,
           });
           const data = await res.json();
-          const amount = data.conversion_rates[target] * +value;
-          setFinalAmount(amount.toFixed(2));
+          const convertedAmount = data.conversion_rates[target] * +amount;
+          handleFinalAmount(convertedAmount.toFixed(2));
         } catch (error) {
           // console.error(error);
         } finally {
@@ -102,9 +112,54 @@ function FinalAmount({ value, countryCodes: [base, target] }) {
         controller.abort();
       };
     },
-    [value, base, target]
+    [amount, base, handleFinalAmount, target]
   );
-  return <h3>{isLoading ? <Loader /> : finalAmount}</h3>;
+  return (
+    <div>
+      <input
+        type={disabled ? "text" : "number"}
+        value={disabled ? (isLoading ? "Calculating..." : finalAmount) : amount}
+        autoComplete="off"
+        onChange={(e) => handleAmount(e.target.value)}
+        disabled={disabled}
+      />
+    </div>
+  );
 }
+
+function Button({ children }) {
+  return <button>{children}</button>;
+}
+
+// function FinalAmount({ value, countryCodes: [base, target] }) {
+//   const [finalAmount, setFinalAmount] = useState("");
+//   const [isLoading, setIsLoading] = useState(false);
+//   useEffect(
+//     function () {
+//       const controller = new AbortController();
+//       async function converter() {
+//         setIsLoading(true);
+//         try {
+//           const res = await fetch(url + base, {
+//             signal: controller.signal,
+//           });
+//           const data = await res.json();
+//           const amount = data.conversion_rates[target] * +value;
+//           setFinalAmount(amount.toFixed(2));
+//         } catch (error) {
+//           // console.error(error);
+//         } finally {
+//           setIsLoading(false);
+//         }
+//       }
+//       converter();
+//       return function () {
+//         controller.abort();
+//       };
+//     },
+//     [value, base, target]
+//   );
+//   return <h3>{isLoading ? <Loader /> : finalAmount}</h3>;
+// }
 
 export default App;
