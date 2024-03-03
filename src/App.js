@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import SelectInput from "./SelectInput";
 
 const url =
-  "https://v6.exchangerate-api.com/v6/17c79158ccf28915047f335f/latest/INR";
+  "https://v6.exchangerate-api.com/v6/17c79158ccf28915047f335f/latest/";
 // https://www.exchangerate-api.com/docs/supported-currencies
 const KEY = "17c79158ccf28915047f335f";
 
 function App() {
   const [amount, setAmount] = useState("");
+  const [countryCode, setCountryCode] = useState(["AED", "AED"]); // default is for UAE
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleOnChange(value) {
     setAmount((amount) => value);
@@ -15,17 +18,37 @@ function App() {
     <div className="App">
       <div className="section-currency">
         {/* base */}
-        <Base>USD</Base>
+        <Base>
+          <SelectInput
+            country={countryCode}
+            handleChange={setCountryCode}
+            index={0}
+          />
+        </Base>
+        {/* convert to symbol */}
+        <div>
+          <i className="fa-solid fa-right-long"></i>
+        </div>
         {/* target */}
-        <Target>INR</Target>
+        <Target>
+          <SelectInput
+            country={countryCode}
+            handleChange={setCountryCode}
+            index={1}
+          />
+        </Target>
       </div>
       <div className="section-result">
         <NumberInput value={amount} handleOnChange={handleOnChange} />
         {/* result */}
-        {amount && <FinalAmount value={amount} countryCode={"USD"} />}
+        {amount && <FinalAmount value={amount} countryCodes={countryCode} />}
       </div>
     </div>
   );
+}
+
+function Loader() {
+  return <div>Calculating...</div>;
 }
 
 function Base({ children }) {
@@ -38,12 +61,14 @@ function Target({ children }) {
 
 function NumberInput({ value, handleOnChange }) {
   return (
-    <input
-      type="number"
-      value={value}
-      autoComplete="off"
-      onChange={(e) => handleOnChange(e.target.value)}
-    />
+    <div>
+      <input
+        type="number"
+        value={value}
+        autoComplete="off"
+        onChange={(e) => handleOnChange(e.target.value)}
+      />
+    </div>
   );
 }
 
@@ -51,21 +76,25 @@ function Button({ children }) {
   return <button>{children}</button>;
 }
 
-function FinalAmount({ value, countryCode }) {
+function FinalAmount({ value, countryCodes: [base, target] }) {
   const [finalAmount, setFinalAmount] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(
     function () {
       const controller = new AbortController();
       async function converter() {
+        setIsLoading(true);
         try {
-          const res = await fetch(url, { signal: controller.signal });
+          const res = await fetch(url + base, {
+            signal: controller.signal,
+          });
           const data = await res.json();
-          const amount = data.conversion_rates[countryCode] * +value;
-          console.log(amount.toFixed(2));
+          const amount = data.conversion_rates[target] * +value;
           setFinalAmount(amount.toFixed(2));
         } catch (error) {
           // console.error(error);
         } finally {
+          setIsLoading(false);
         }
       }
       converter();
@@ -73,9 +102,9 @@ function FinalAmount({ value, countryCode }) {
         controller.abort();
       };
     },
-    [value, countryCode]
+    [value, base, target]
   );
-  return <h3>{finalAmount}</h3>;
+  return <h3>{isLoading ? <Loader /> : finalAmount}</h3>;
 }
 
 export default App;
