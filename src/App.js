@@ -9,11 +9,15 @@ const KEY = "17c79158ccf28915047f335f";
 function App() {
   const [amount, setAmount] = useState("");
   const [countryCode, setCountryCode] = useState(["AED", "AED"]); // default is for UAE
-  const [isLoading, setIsLoading] = useState(false);
 
   function handleOnChange(value) {
     setAmount((amount) => value);
   }
+
+  function handleSwap() {
+    setCountryCode((countryCode) => [countryCode[1], countryCode[0]]);
+  }
+
   return (
     <div className="App">
       <div className="section-currency">
@@ -42,6 +46,11 @@ function App() {
         <NumberInput value={amount} handleOnChange={handleOnChange} />
         {/* result */}
         {amount && <FinalAmount value={amount} countryCodes={countryCode} />}
+      </div>
+      <div className="section">
+        <Button handleClick={handleSwap}>
+          <i className="fa-solid fa-right-left"></i>
+        </Button>
       </div>
     </div>
   );
@@ -72,8 +81,8 @@ function NumberInput({ value, handleOnChange }) {
   );
 }
 
-function Button({ children }) {
-  return <button>{children}</button>;
+function Button({ children, handleClick }) {
+  return <button onClick={(e) => handleClick()}>{children}</button>;
 }
 
 function FinalAmount({ value, countryCodes: [base, target] }) {
