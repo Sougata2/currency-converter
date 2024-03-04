@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import SelectInput from "./SelectInput";
+import getSymbolFromCurrency from "currency-symbol-map";
 
 const url =
   "https://v6.exchangerate-api.com/v6/17c79158ccf28915047f335f/latest/";
@@ -19,62 +20,94 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <div className="section-currency">
+    <div className="App container text-center">
+      <div className="section-currency row mb-3">
         {/* base */}
-        <Base>
+        <Base className={"col-lg-4"}>
           <SelectInput
             country={countryCode}
             handleChange={setCountryCode}
             index={0}
+            label={"From"}
           />
         </Base>
         {/* convert to symbol */}
-        <div>
+        {/* <div className="col-lg-4">
           <i className="fa-solid fa-right-long"></i>
+        </div> */}
+        <div className="col-lg-4">
+          <Button handleClick={handleSwap}>
+            <i className="fa-solid fa-right-left"></i>
+          </Button>
         </div>
         {/* target */}
-        <Target>
+        <Target className={"col-lg-4"}>
           <SelectInput
             country={countryCode}
             handleChange={setCountryCode}
             index={1}
+            label={"To"}
           />
         </Target>
       </div>
       <div className="section-result">
-        <NumberInput value={amount} handleOnChange={handleOnChange} />
+        <NumberInput
+          value={amount}
+          handleOnChange={handleOnChange}
+          className={"form-control mb-3"}
+        />
         {/* result */}
-        {amount && <FinalAmount value={amount} countryCodes={countryCode} />}
-      </div>
-      <div className="section">
-        <Button handleClick={handleSwap}>
-          <i className="fa-solid fa-right-left"></i>
-        </Button>
+        {amount && (
+          <FinalAmount
+            value={amount}
+            countryCodes={countryCode}
+            className={"text-center"}
+          />
+        )}
       </div>
     </div>
   );
+}
+
+function Label({ children }) {
+  return <span>{children}</span>;
 }
 
 function Loader() {
   return <div>Calculating...</div>;
 }
 
-function Base({ children }) {
-  return <div>{children}</div>;
+function Base({ className, children }) {
+  return <div className={className}>{children}</div>;
 }
 
-function Target({ children }) {
-  return <div>{children}</div>;
+function Target({ className, children }) {
+  return <div className={className}>{children}</div>;
 }
 
-function NumberInput({ value, handleOnChange }) {
+function ErrorDiv({ result, errorType }) {
+  return (
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{result}</strong> {errorType}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
+  );
+}
+
+function NumberInput({ value, handleOnChange, className }) {
   return (
     <div>
       <input
+        className={className}
         type="number"
         value={value}
         autoComplete="off"
+        placeholder="Amount"
         onChange={(e) => handleOnChange(e.target.value)}
       />
     </div>
@@ -82,12 +115,30 @@ function NumberInput({ value, handleOnChange }) {
 }
 
 function Button({ children, handleClick }) {
-  return <button onClick={(e) => handleClick()}>{children}</button>;
+  return (
+    <button
+      className="btn btn-info"
+      style={{
+        color: "white",
+        fontSize: "1.2rem",
+        borderRadius: "100%",
+        width: "3rem",
+        height: "3rem",
+      }}
+      onClick={(e) => handleClick()}
+    >
+      {children}
+    </button>
+  );
 }
 
-function FinalAmount({ value, countryCodes: [base, target] }) {
+function FinalAmount({ value, countryCodes: [base, target], className }) {
   const [finalAmount, setFinalAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const base_symbol = getSymbolFromCurrency(base);
+  const target_symbol = getSymbolFromCurrency(target);
+
   useEffect(
     function () {
       const controller = new AbortController();
@@ -98,10 +149,16 @@ function FinalAmount({ value, countryCodes: [base, target] }) {
             signal: controller.signal,
           });
           const data = await res.json();
+          if (data.result !== "success") {
+            throw new Error(data["error-type"]);
+          }
           const amount = data.conversion_rates[target] * +value;
           setFinalAmount(amount.toFixed(2));
-        } catch (error) {
-          // console.error(error);
+        } catch (err) {
+          if (err.name !== "AbortError") {
+            console.log(err.message);
+            setError(err.message);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -113,7 +170,29 @@ function FinalAmount({ value, countryCodes: [base, target] }) {
     },
     [value, base, target]
   );
-  return <h3>{isLoading ? <Loader /> : finalAmount}</h3>;
+  return (
+    <>
+      {error ? (
+        <ErrorDiv result={"Error"} errorType={error} />
+      ) : (
+        <h3 className={className}>
+          {isLoading ? (
+            <Loader />
+          ) : (
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <div>
+                {value} {base_symbol}
+              </div>
+              <div>&nbsp;=&nbsp;</div>
+              <div>
+                {finalAmount} {target_symbol}
+              </div>
+            </div>
+          )}
+        </h3>
+      )}
+    </>
+  );
 }
 
 export default App;

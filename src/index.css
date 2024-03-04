@@ -16,14 +16,12 @@ code {
   padding: 2rem;
 }
 
-.section-currency {
-  display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
+input[type="number"] {
+  text-align: center;
 }
 
-.section{
-  display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
+@media (max-width: 980px) {
+  .btn-info {
+    margin: 1rem 0;
+  }
 }
