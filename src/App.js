@@ -69,9 +69,6 @@ function App() {
   );
 }
 
-function Label({ children }) {
-  return <span>{children}</span>;
-}
 
 function Loader() {
   return <div>Calculating...</div>;
@@ -85,13 +82,17 @@ function Target({ className, children }) {
   return <div className={className}>{children}</div>;
 }
 
-function ErrorDiv({ result, errorType }) {
+function ErrorDiv({ result, errorType, handleClick }) {
   return (
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div
+      className="alert alert-danger alert-dismissible fade show"
+      role="alert"
+      onClick={(e) => handleClick()}
+    >
       <strong>{result}</strong> {errorType}
       <button
         type="button"
-        class="btn-close"
+        className="btn-close"
         data-bs-dismiss="alert"
         aria-label="Close"
       ></button>
@@ -139,6 +140,10 @@ function FinalAmount({ value, countryCodes: [base, target], className }) {
   const base_symbol = getSymbolFromCurrency(base);
   const target_symbol = getSymbolFromCurrency(target);
 
+  function handleCloseError() {
+    setError(null);
+  }
+
   useEffect(
     function () {
       const controller = new AbortController();
@@ -156,7 +161,7 @@ function FinalAmount({ value, countryCodes: [base, target], className }) {
           setFinalAmount(amount.toFixed(2));
         } catch (err) {
           if (err.name !== "AbortError") {
-            console.log(err.message);
+            // console.log(err.message);
             setError(err.message);
           }
         } finally {
@@ -171,9 +176,13 @@ function FinalAmount({ value, countryCodes: [base, target], className }) {
     [value, base, target]
   );
   return (
-    <>
+    <div className="final-amount">
       {error ? (
-        <ErrorDiv result={"Error"} errorType={error} />
+        <ErrorDiv
+          result={"Error"}
+          errorType={error}
+          handleClick={handleCloseError}
+        />
       ) : (
         <h3 className={className}>
           {isLoading ? (
@@ -191,7 +200,7 @@ function FinalAmount({ value, countryCodes: [base, target], className }) {
           )}
         </h3>
       )}
-    </>
+    </div>
   );
 }
 
