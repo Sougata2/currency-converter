@@ -9,7 +9,7 @@ const KEY = "17c79158ccf28915047f335f";
 
 function App() {
   const [amount, setAmount] = useState("");
-  const [countryCode, setCountryCode] = useState(["AED", "AED"]); // default is for UAE
+  const [countryCode, setCountryCode] = useState(["AFN", "AFN"]); // default is for UAE
 
   function handleOnChange(value) {
     setAmount((amount) => value);
