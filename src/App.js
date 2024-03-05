@@ -21,6 +21,7 @@ function App() {
 
   return (
     <div className="App container text-center">
+      <Title>Currency Converter</Title>
       <div className="section-currency row mb-3">
         {/* base */}
         <Base className={"col-lg-4"}>
@@ -69,6 +70,9 @@ function App() {
   );
 }
 
+function Title({ children }) {
+  return <div className="title">{children}</div>;
+}
 
 function Loader() {
   return <div>Calculating...</div>;
