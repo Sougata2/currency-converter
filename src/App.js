@@ -16,7 +16,11 @@ function App() {
   }
 
   function handleSwap() {
+    document.querySelector(".btn-info").classList.add("btn-info-rotate");
     setCountryCode((countryCode) => [countryCode[1], countryCode[0]]);
+    setTimeout(() => {
+      document.querySelector(".btn-info").classList.remove("btn-info-rotate");
+    }, 500);
   }
 
   return (
