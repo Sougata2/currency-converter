@@ -3,9 +3,9 @@ import SelectInput from "./SelectInput";
 import getSymbolFromCurrency from "currency-symbol-map";
 
 const url =
-  "https://v6.exchangerate-api.com/v6/17c79158ccf28915047f335f/latest/";
+  "https://v6.exchangerate-api.com/v6/2c7642ab460f0b3a42243b60/latest/";
 // https://www.exchangerate-api.com/docs/supported-currencies
-const KEY = "17c79158ccf28915047f335f";
+const KEY = "2c7642ab460f0b3a42243b60";
 
 function App() {
   const [amount, setAmount] = useState("");
